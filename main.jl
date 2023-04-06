@@ -1,12 +1,14 @@
-include("functions.jl")
+include("ReadData.jl")
 include("SVM.jl")
-
-
-#SVM Main
-
-
+using DataFrames
 #Get Data
-#split into test and train
+trainX,trainY,validX,validY,testX,testY = getData() 
+
 #train SVM
+weights=train(trainX,trainY,validX,validY)
+
 #test SVM
+print(accuracy(testX,testY,weights))
+
+
 #plot results

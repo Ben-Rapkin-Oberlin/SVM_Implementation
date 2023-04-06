@@ -4,67 +4,36 @@ function standardize(x)
     return ((x .- mean(x)) ./ std(x))
     end
 
-function one(df)
-    for x in 3:32
-        df[!,x] = standardize(df[1:end, x])
-        end
-    end
-
-function zero(df)
-    transform!(df, Between(:3,:32) .=> standardize; renamecols=false)
-    end
-
-function two(df)
-    transform(df, Between(:3,:32) .=> standardize; renamecols=false)
-    end
-function three(df)
-    DataFrame([standardize(x) for x in eachcol(df[:,3:32])],:auto)
-    end
-
 function getData()
     df=CSV.read("data.csv",DataFrame)
-    df.diagnosis = replace.(df.diagnosis, "M" => 1, "B" => -1)
-    ds=copy(df)
-    dg=copy(df)
+    #first row is patient id, we do not need this 
+    df=df[:,2:end]
+    df.diagnosis = parse.(Int64,replace.(df.diagnosis, "M" => 1, "B" => -1))
 
-    
-    
-    #for x in 3:32
-    #    df[!,x] = standardize(df[1:end, x])
-    #    end
-    
-    #ds=transform!(ds, Between(:3,:32) .=> standardize; renamecols=false)
-    @time one(df)
-    @time one(df)  
-    @time one(df)  
-    @time zero(df)
-    @time zero(df)
-    @time zero(df)
-    @time two(df)
-    @time two(df)
-    @time two(df)
-    @time three(df)
-    @time three(df)
-    @time three(df)
 
-    dq=DataFrame([standardize(x) for x in eachcol(df[:,3:32])],:auto)
-
-   print(df[1:4,1:4])
-   # print(ds[1:4,1:4])
-   # print(dg[1:4,1:4])
+    #standardize via z-score
+    for x in 2:31
+        df[!,x] = standardize(df[1:end, x])    
+        end
+  
     #randomize
     shuffle!(MersenneTwister(1234), df)
-    
-    #split
-    train=df[1:Int(floor(length(df[:,1])*.65)),:]
-    valid=df[Int(floor(length(df[:,1])*.65)):Int(floor(length(df[:,1])*.85)),:]
-    test=df[Int(floor(length(df[:,1])*.85)):end,:]
-    #return
 
-    return train, valid, test
+    #convert to matrix as matrix is row major
+    df=Matrix(df)
+
+    #split
+    trainX=df[1:Int(floor(length(df[:,1])*.65)),2:end]
+    trainY=df[1:Int(floor(length(df[:,1])*.65)),1]
+    validX=df[Int(floor(length(df[:,1])*.65)):Int(floor(length(df[:,1])*.85)),2:end]
+    validY=df[Int(floor(length(df[:,1])*.65)):Int(floor(length(df[:,1])*.85)),1]
+    testX=df[Int(floor(length(df[:,1])*.85)):end,2:end]
+    testY=df[Int(floor(length(df[:,1])*.85)):end,1]
+    
+
+    return trainX,trainY,validX,validY,testX,testY
     end
 
-getData()
 
 
 
