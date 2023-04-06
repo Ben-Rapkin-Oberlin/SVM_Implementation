@@ -4,15 +4,54 @@ function standardize(x)
     return ((x .- mean(x)) ./ std(x))
     end
 
+function one(df)
+    for x in 3:32
+        df[!,x] = standardize(df[1:end, x])
+        end
+    end
+
+function zero(df)
+    transform!(df, Between(:3,:32) .=> standardize; renamecols=false)
+    end
+
+function two(df)
+    transform(df, Between(:3,:32) .=> standardize; renamecols=false)
+    end
+function three(df)
+    DataFrame([standardize(x) for x in eachcol(df[:,3:32])],:auto)
+    end
 
 function getData()
     df=CSV.read("data.csv",DataFrame)
     df.diagnosis = replace.(df.diagnosis, "M" => 1, "B" => -1)
+    ds=copy(df)
+    dg=copy(df)
 
-    for x in 3:32
-        df[!,x] = standardize(df[1:end, x])
-        end
+    
+    
+    #for x in 3:32
+    #    df[!,x] = standardize(df[1:end, x])
+    #    end
+    
+    #ds=transform!(ds, Between(:3,:32) .=> standardize; renamecols=false)
+    @time one(df)
+    @time one(df)  
+    @time one(df)  
+    @time zero(df)
+    @time zero(df)
+    @time zero(df)
+    @time two(df)
+    @time two(df)
+    @time two(df)
+    @time three(df)
+    @time three(df)
+    @time three(df)
 
+    dq=DataFrame([standardize(x) for x in eachcol(df[:,3:32])],:auto)
+
+   print(df[1:4,1:4])
+   # print(ds[1:4,1:4])
+   # print(dg[1:4,1:4])
     #randomize
     shuffle!(MersenneTwister(1234), df)
     
